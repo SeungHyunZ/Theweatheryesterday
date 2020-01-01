@@ -146,6 +146,14 @@ public class MainActivity extends AppCompatActivity {
         return returnText;
     }
 
+    public String substringcomma(String t){
+
+        int idx = t.indexOf(".");
+        String substringcomma = t.substring(0, idx+2);
+
+        return  substringcomma;
+    }
+
     public void weatersetting(String jsonInfo){
         try {
             JSONObject jsonObject = new JSONObject(jsonInfo);
@@ -230,19 +238,24 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-                    text.setText(city+"   "+county+"\n\n\n"+
-                                "어제날씨\n"+
-                                "최고 "+tmaxYesterday+"\n"+
-                                "최처 "+tminYesterday+"\n\n"+
-                                "오늘날씨\n"+
-                                "최고 "+tmaxToday+"\n"+
-                                "최처 "+tminToday+"\n\n"+
-                                "내일날씨\n"+
-                                "최고 "+tmaxTomorrow+"\n"+
-                                "최처 "+tminTomorrow+"\n\n"+
-                                "내일모래날씨\n"+
-                                "최고 "+tmaxDayAfterTomorrow+"\n"+
-                                "최처 "+tminDayAfterTomorrow+"\n\n"
+                    text.setText(
+                                "어제  "+
+                            "  "+substringcomma(tminYesterday)+" º  ~"+
+                            "  "+substringcomma(tmaxYesterday)+" º\n\n"+
+
+                                "오늘  "+
+                            "  "+substringcomma(tminToday)+" º  ~"+
+                            "  "+substringcomma(tmaxToday)+" º\n\n"+
+
+                                "내일  "+
+                            "  "+substringcomma(tminTomorrow)+" º  ~"+
+                            "  "+substringcomma(tmaxTomorrow)+" º\n\n"+
+
+                                "모래  "+
+                             "  "+substringcomma(tminDayAfterTomorrow)+" º  ~"+
+                            "  "+substringcomma(tmaxDayAfterTomorrow)+" º\n\n\n\n\n\n"+
+                                        city+"   "+county
+
                     );
                 }
             }
