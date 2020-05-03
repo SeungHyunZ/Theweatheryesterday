@@ -8,29 +8,24 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
-import android.media.Image;
-import android.net.ParseException;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.darkbluesharp.theweatheryesterday.R;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -38,11 +33,24 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.initialization.InitializationStatus;
+import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
+
 
 public class MainActivity extends AppCompatActivity {
 
     TextView text;
     ImageView refresh ;
+    TextView timeRelease;
+    TextView city_contry;
+
+    TextView max1, sky1, min1, max2, sky2, min2, max3, sky3, min3, max4, sky4, min4 ;
+    LinearLayout up1, mid1, down1, up2, mid2, down2, up3, mid3, down3, up4, mid4, down4;
+
+    private AdView mAdView;
 
     public LocationManager locationManager;
     private static final int REQUEST_CODE_LOCATION = 2;
@@ -66,8 +74,55 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //add bof
+        MobileAds.initialize(this, new OnInitializationCompleteListener() {
+            @Override
+            public void onInitializationComplete(InitializationStatus initializationStatus) {
+            }
+        });
+
+        mAdView = findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
+        //add eof
+
+
         text = (TextView) findViewById(R.id.text);
         refresh = (ImageView) findViewById(R.id.refresh);
+        timeRelease = (TextView) findViewById(R.id.timeRelease);
+        city_contry = (TextView) findViewById(R.id.city_contry);
+
+        max1 = (TextView) findViewById(R.id.max1);
+        sky1 = (TextView) findViewById(R.id.sky1);
+        min1 = (TextView) findViewById(R.id.min1);
+
+        max2 = (TextView) findViewById(R.id.max2);
+        sky2 = (TextView) findViewById(R.id.sky2);
+        min2 = (TextView) findViewById(R.id.min2);
+
+        max3 = (TextView) findViewById(R.id.max3);
+        sky3 = (TextView) findViewById(R.id.sky3);
+        min3 = (TextView) findViewById(R.id.min3);
+
+        max4 = (TextView) findViewById(R.id.max4);
+        sky4 = (TextView) findViewById(R.id.sky4);
+        min4 = (TextView) findViewById(R.id.min4);
+
+        up1 = (LinearLayout) findViewById(R.id.up1);
+        mid1 = (LinearLayout) findViewById(R.id.mid1);
+        down1 = (LinearLayout) findViewById(R.id.down1);
+
+        up2 = (LinearLayout) findViewById(R.id.up2);
+        mid2 = (LinearLayout) findViewById(R.id.mid2);
+        down2 = (LinearLayout) findViewById(R.id.down2);
+
+        up3 = (LinearLayout) findViewById(R.id.up3);
+        mid3 = (LinearLayout) findViewById(R.id.mid3);
+        down3 = (LinearLayout) findViewById(R.id.down3);
+
+        up4 = (LinearLayout) findViewById(R.id.up4);
+        mid4 = (LinearLayout) findViewById(R.id.mid4);
+        down4 = (LinearLayout) findViewById(R.id.down4);
 
 
         ImageView refresh = (ImageView) findViewById(R.id.refresh) ;
@@ -167,6 +222,10 @@ public class MainActivity extends AppCompatActivity {
             for (int i=0; i < summaryjsonArray.length(); i++) {
                 if(i==0){
                     JSONObject summaryjsonObject = summaryjsonArray.getJSONObject(i);
+                    //기준시간
+                    String timeReleaseText = summaryjsonObject.getString("timeRelease");
+                    Log.e("weather","timeRelease====="+timeRelease);
+
                     //어제날씨
                     String yesterday = summaryjsonObject.getString("yesterday");
                     Log.e("weather","yesterday====="+yesterday);
@@ -174,12 +233,18 @@ public class MainActivity extends AppCompatActivity {
                     JSONObject yesterdayjsonObject = new JSONObject(yesterday);
                     String temperatureYesterday = yesterdayjsonObject.getString("temperature");
                     Log.e("weather","temperatureYesterday====="+temperatureYesterday);
+                    String skyYesterday = yesterdayjsonObject.getString("sky");  //날씨
+                    Log.e("weather","skyYesterday====="+skyYesterday); //날씨
 
                     JSONObject yesterdaytemperaturejsonObject = new JSONObject(temperatureYesterday);
                     String tmaxYesterday = yesterdaytemperaturejsonObject.getString("tmax");
                     String tminYesterday = yesterdaytemperaturejsonObject.getString("tmin");
                     Log.e("weather","tmaxYesterday====="+tmaxYesterday);
                     Log.e("weather","tminYesterday====="+tminYesterday);
+
+                    JSONObject yesterdayskyjsonObject = new JSONObject(skyYesterday); //날씨
+                    String skyNameYesterday = yesterdayskyjsonObject.getString("name"); //날씨
+                    Log.e("weather","skyNameYesterday====="+skyNameYesterday);  //날씨
 
 
                     //오늘날씨
@@ -189,12 +254,18 @@ public class MainActivity extends AppCompatActivity {
                     JSONObject todayjsonObject = new JSONObject(today);
                     String temperatureToday = todayjsonObject.getString("temperature");
                     Log.e("weather","temperatureToday====="+temperatureToday);
+                    String skyToday = todayjsonObject.getString("sky");  //날씨
+                    Log.e("weather","skyToday====="+skyToday); //날씨
 
                     JSONObject todaytemperaturejsonObject = new JSONObject(temperatureToday);
                     String tmaxToday = todaytemperaturejsonObject.getString("tmax");
                     String tminToday = todaytemperaturejsonObject.getString("tmin");
                     Log.e("weather","tmaxToday====="+tmaxToday);
                     Log.e("weather","tminToday====="+tminToday);
+
+                    JSONObject todayskyjsonObject = new JSONObject(skyToday); //날씨
+                    String skyNameToday = todayskyjsonObject.getString("name"); //날씨
+                    Log.e("weather","skyNameToday====="+skyNameToday);  //날씨
 
 
                     //내일날씨
@@ -204,12 +275,18 @@ public class MainActivity extends AppCompatActivity {
                     JSONObject tomorrowjsonObject = new JSONObject(tomorrow);
                     String temperatureTomorrow = tomorrowjsonObject.getString("temperature");
                     Log.e("weather","temperatureTomorrow====="+temperatureTomorrow);
+                    String skyTomorrow = tomorrowjsonObject.getString("sky");  //날씨
+                    Log.e("weather","skyTomorrow====="+skyTomorrow); //날씨
 
                     JSONObject tomorrowtemperaturejsonObject = new JSONObject(temperatureTomorrow);
                     String tmaxTomorrow = tomorrowtemperaturejsonObject.getString("tmax");
                     String tminTomorrow = tomorrowtemperaturejsonObject.getString("tmin");
                     Log.e("weather","tmaxTomorrow====="+tmaxTomorrow);
                     Log.e("weather","tminTomorrow====="+tminTomorrow);
+
+                    JSONObject tomorrowskyjsonObject = new JSONObject(skyTomorrow); //날씨
+                    String skyNameTomorrow = tomorrowskyjsonObject.getString("name"); //날씨
+                    Log.e("weather","skyNameTomorrow====="+skyNameTomorrow);  //날씨
 
                     //내일모래날씨
                     String dayAfterTomorrow = summaryjsonObject.getString("dayAfterTomorrow");
@@ -218,12 +295,18 @@ public class MainActivity extends AppCompatActivity {
                     JSONObject dayAfterTomorrowjsonObject = new JSONObject(dayAfterTomorrow);
                     String temperatureDayAfterTomorrow = dayAfterTomorrowjsonObject.getString("temperature");
                     Log.e("weather","temperatureDayAfterTomorrow====="+temperatureDayAfterTomorrow);
+                    String skyDayAfterTomorrow = dayAfterTomorrowjsonObject.getString("sky");  //날씨
+                    Log.e("weather","skyDayAfterTomorrow====="+skyDayAfterTomorrow); //날씨
 
                     JSONObject dayAfterTomorrowtemperaturejsonObject = new JSONObject(temperatureDayAfterTomorrow);
                     String tmaxDayAfterTomorrow = dayAfterTomorrowtemperaturejsonObject.getString("tmax");
                     String tminDayAfterTomorrow = dayAfterTomorrowtemperaturejsonObject.getString("tmin");
                     Log.e("weather","tmaxDayAfterTomorrow====="+tmaxDayAfterTomorrow);
                     Log.e("weather","tminDayAfterTomorrow====="+tminDayAfterTomorrow);
+
+                    JSONObject dayAfterTomorrowskyjsonObject = new JSONObject(skyDayAfterTomorrow); //날씨
+                    String skyNameDayAfterTomorrow = dayAfterTomorrowskyjsonObject.getString("name"); //날씨
+                    Log.e("weather","skyNameDayAfterTomorrow====="+skyNameDayAfterTomorrow);  //날씨
 
                     //위치
                     String grid = summaryjsonObject.getString("grid");
@@ -236,6 +319,24 @@ public class MainActivity extends AppCompatActivity {
                     Log.e("weather","county====="+county);
 
 
+                    timeRelease.setText(timeReleaseText); //업데이트 날짜 세팅
+                    city_contry.setText(city+"   "+county);//도시 세팅
+
+                    max1.setText(substringcomma(tmaxYesterday)+" º");
+                    sky1.setText(skyNameYesterday);
+                    min1.setText(substringcomma(tminYesterday)+" º");
+
+                    max2.setText(substringcomma(tmaxToday)+" º");
+                    sky2.setText(skyNameToday);
+                    min2.setText(substringcomma(tminToday)+" º");
+
+                    max3.setText(substringcomma(tmaxTomorrow)+" º");
+                    sky3.setText(skyNameTomorrow);
+                    min3.setText(substringcomma(tminTomorrow)+" º");
+
+                    max4.setText(substringcomma(tmaxDayAfterTomorrow)+" º");
+                    sky4.setText(skyNameDayAfterTomorrow);
+                    min4.setText(substringcomma(tminDayAfterTomorrow)+" º");
 
 
                     text.setText(
@@ -253,14 +354,93 @@ public class MainActivity extends AppCompatActivity {
 
                                 "모래  "+
                              "  "+substringcomma(tminDayAfterTomorrow)+" º  ~"+
-                            "  "+substringcomma(tmaxDayAfterTomorrow)+" º\n\n\n\n\n\n"+
-                                        city+"   "+county
-
+                            "  "+substringcomma(tmaxDayAfterTomorrow)
                     );
+
+                    float maxf1 = Float.parseFloat(tmaxYesterday);
+                    float minf1 = Float.parseFloat(tminYesterday);
+                    float maxf2 = Float.parseFloat(tmaxToday);
+                    float minf2 = Float.parseFloat(tminToday);
+                    float maxf3 = Float.parseFloat(tmaxTomorrow);
+                    float minf3 = Float.parseFloat(tminTomorrow);
+                    float maxf4 = Float.parseFloat(tmaxDayAfterTomorrow);
+                    float minf4 = Float.parseFloat(tminDayAfterTomorrow);
+
+                    float maxf ; //최대온도
+                    float minf ; //최소온도
+
+
+                    //최대온도 구하기
+                    if(maxf1>=maxf2){ maxf = maxf1;
+                    }else{ maxf = maxf2; }
+                    if(maxf>=maxf3){
+                    }else{ maxf=maxf3; }
+                    if(maxf>=maxf4){
+                    }else{ maxf=maxf4; }
+                    Log.e("weather","maxf====="+maxf);  //날씨
+                    //최소온도 구하기
+                    if(minf1<=minf2){ minf = minf1;
+                    }else{ minf = minf2; }
+                    if(minf<=minf3){
+                    }else{ minf=minf3; }
+                    if(minf<=minf4){
+                    }else{ minf=minf4; }
+                    Log.e("weather","minf====="+minf);  //날씨
+
+                    float lange = maxf - minf;
+                    Log.e("weather","lange====="+lange);  //날씨
+
+
+                    LinearLayout.LayoutParams paramsup1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
+                    LinearLayout.LayoutParams paramsmid1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
+                    LinearLayout.LayoutParams paramsdown1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
+
+                    paramsup1.weight = Math.round(maxf-maxf1);
+                    up1.setLayoutParams(paramsup1);
+                    paramsmid1.weight = Math.round(maxf1-minf1);
+                    mid1.setLayoutParams(paramsmid1);
+                    paramsdown1.weight = Math.round(minf1-minf);
+                    down1.setLayoutParams(paramsdown1);
+                    Log.e("weather","Math.round(maxf-maxf1)====="+Math.round(maxf-maxf1));  //날씨
+                    Log.e("weather","Math.round(maxf1-minf1)====="+Math.round(maxf1-minf1));  //날씨
+                    Log.e("weather","Math.round(minf1-minf)====="+Math.round(minf1-minf));  //날씨
+
+                    LinearLayout.LayoutParams paramsup2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
+                    LinearLayout.LayoutParams paramsmid2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
+                    LinearLayout.LayoutParams paramsdown2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
+
+                    paramsup2.weight = Math.round(maxf-maxf2);
+                    up2.setLayoutParams(paramsup2);
+                    paramsmid2.weight = Math.round(maxf2-minf2);
+                    mid2.setLayoutParams(paramsmid2);
+                    paramsdown2.weight = Math.round(minf2-minf);
+                    down2.setLayoutParams(paramsdown2);
+
+                    LinearLayout.LayoutParams paramsup3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
+                    LinearLayout.LayoutParams paramsmid3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
+                    LinearLayout.LayoutParams paramsdown3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
+
+                    paramsup3.weight = Math.round(maxf-maxf3);
+                    up3.setLayoutParams(paramsup3);
+                    paramsmid3.weight = Math.round(maxf3-minf3);
+                    mid3.setLayoutParams(paramsmid3);
+                    paramsdown3.weight = Math.round(minf3-minf);
+                    down3.setLayoutParams(paramsdown3);
+
+                    LinearLayout.LayoutParams paramsup4 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
+                    LinearLayout.LayoutParams paramsmid4 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
+                    LinearLayout.LayoutParams paramsdown4 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
+
+                    paramsup4.weight = Math.round(maxf-maxf4);
+                    up4.setLayoutParams(paramsup4);
+                    paramsmid4.weight = Math.round(maxf4-minf4);
+                    mid4.setLayoutParams(paramsmid4);
+                    paramsdown4.weight = Math.round(minf4-minf);
+                    down4.setLayoutParams(paramsdown4);
                 }
             }
 
-
+            Toast.makeText(MainActivity.this, "날씨 업데이트가 완료되었습니다.", Toast.LENGTH_LONG).show();
 
           /*  JSONObject jsonObject = new JSONObject(jsonInfo);
             String predictions = jsonObject.getString("predictions");
