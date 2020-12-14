@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 import androidx.annotation.NonNull;
@@ -32,7 +33,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
@@ -47,8 +54,10 @@ public class MainActivity extends AppCompatActivity {
     TextView timeRelease;
     TextView city_contry;
 
-    TextView max1, sky1, min1, max2, sky2, min2, max3, sky3, min3, max4, sky4, min4 ;
+    TextView max1, min1, max2, min2, max3, min3, max4, min4 ;
     LinearLayout up1, mid1, down1, up2, mid2, down2, up3, mid3, down3, up4, mid4, down4;
+
+    ImageView sky1, sky2,sky3,sky4;
 
     private AdView mAdView;
 
@@ -66,6 +75,24 @@ public class MainActivity extends AppCompatActivity {
     private String appKey = "l7xx26f65cec2522414e8ce89887fcf52947";
     private String lat="37.595451";
     private String lon="127.0261907";
+
+    private String  tmaxYesterday;
+    private String  tminYesterday;
+    private String  tmaxToday;
+    private String  tminToday;
+    private String  tmaxTomorrow;
+    private String  tminTomorrow;
+    private String  tmaxDayAfterTomorrow;
+    private String  tminDayAfterTomorrow;
+
+    private Long timezone_offset;
+    private Long tsLong;
+
+    private Long yesterdaytime1 ; //어제
+    private Long yesterdaytime2 ; //그제
+
+    private ArrayList<String> temp = new ArrayList<String>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,19 +120,19 @@ public class MainActivity extends AppCompatActivity {
         city_contry = (TextView) findViewById(R.id.city_contry);
 
         max1 = (TextView) findViewById(R.id.max1);
-        sky1 = (TextView) findViewById(R.id.sky1);
+        //sky1 = (ImageView) findViewById(R.id.sky1);
         min1 = (TextView) findViewById(R.id.min1);
 
         max2 = (TextView) findViewById(R.id.max2);
-        sky2 = (TextView) findViewById(R.id.sky2);
+        sky2 = (ImageView) findViewById(R.id.sky2);
         min2 = (TextView) findViewById(R.id.min2);
 
         max3 = (TextView) findViewById(R.id.max3);
-        sky3 = (TextView) findViewById(R.id.sky3);
+        sky3 = (ImageView) findViewById(R.id.sky3);
         min3 = (TextView) findViewById(R.id.min3);
 
         max4 = (TextView) findViewById(R.id.max4);
-        sky4 = (TextView) findViewById(R.id.sky4);
+        sky4 = (ImageView) findViewById(R.id.sky4);
         min4 = (TextView) findViewById(R.id.min4);
 
         up1 = (LinearLayout) findViewById(R.id.up1);
@@ -161,6 +188,26 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    Handler handler2 = new Handler() {
+        public void handleMessage(Message msg) {
+            Bundle bun = msg.getData();
+            String jsonInfo = bun.getString("HTML_DATA2");
+            // text.setText(jsonInfo);
+
+            startTomorrow(jsonInfo);
+        }
+    };
+
+    Handler handler3 = new Handler() {
+        public void handleMessage(Message msg) {
+            Bundle bun = msg.getData();
+            String jsonInfo = bun.getString("HTML_DATA3");
+            // text.setText(jsonInfo);
+
+            startTomorrow2(jsonInfo);
+        }
+    };
+
     /*출처: https://cofs.tistory.com/335 [CofS]*/
     public String httpConnection(String targetUrl) {
         URL url = null;
@@ -212,252 +259,141 @@ public class MainActivity extends AppCompatActivity {
     public void weatersetting(String jsonInfo){
         try {
             JSONObject jsonObject = new JSONObject(jsonInfo);
-            String weather = jsonObject.getString("weather");
 
-            JSONObject weatherjsonObject = new JSONObject(weather);
-            String summary = weatherjsonObject.getString("summary");
-            JSONArray summaryjsonArray = new JSONArray(summary);
+            //현재시간
+            String currentString = jsonObject.getString("current");
+            Log.e("weather","currentString====="+currentString);
+            JSONObject dtjson= new JSONObject(currentString);
+            String dtString = dtjson.getString("dt");
 
-            Log.e("weather","summary====="+summary);
-            for (int i=0; i < summaryjsonArray.length(); i++) {
+            // 현재시간을 msec 으로 구한다.
+            long now = System.currentTimeMillis();
+            // 현재시간을 date 변수에 저장한다.
+            Date date = new Date(now);
+            // 시간을 나타냇 포맷을 정한다 ( yyyy/MM/dd 같은 형태로 변형 가능 )
+            SimpleDateFormat sdfNow = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+            // nowDate 변수에 값을 저장한다.
+            String formatDate = sdfNow.format(date);
+
+
+
+            timeRelease.setText(formatDate); //업데이트 날짜 세팅
+
+            //도시
+            String timezoneString = jsonObject.getString("timezone");
+            city_contry.setText(timezoneString);//도시 세팅
+
+            //타임존 차이 구하기
+            timezone_offset =  Long.parseLong(jsonObject.getString("timezone_offset"));
+
+            //오늘, 내일, 모래 날씨
+            String daily = jsonObject.getString("daily");
+            Log.e("daily","currentString====="+daily);
+            JSONArray dailyjsonArray= new JSONArray(daily);
+
+            for (int i=0; i < dailyjsonArray.length(); i++) {
                 if(i==0){
-                    JSONObject summaryjsonObject = summaryjsonArray.getJSONObject(i);
-                    //기준시간
-                    String timeReleaseText = summaryjsonObject.getString("timeRelease");
-                    Log.e("weather","timeRelease====="+timeRelease);
-
-                    //어제날씨
-                    String yesterday = summaryjsonObject.getString("yesterday");
-                    Log.e("weather","yesterday====="+yesterday);
-
-                    JSONObject yesterdayjsonObject = new JSONObject(yesterday);
-                    String temperatureYesterday = yesterdayjsonObject.getString("temperature");
-                    Log.e("weather","temperatureYesterday====="+temperatureYesterday);
-                    String skyYesterday = yesterdayjsonObject.getString("sky");  //날씨
-                    Log.e("weather","skyYesterday====="+skyYesterday); //날씨
-
-                    JSONObject yesterdaytemperaturejsonObject = new JSONObject(temperatureYesterday);
-                    String tmaxYesterday = yesterdaytemperaturejsonObject.getString("tmax");
-                    String tminYesterday = yesterdaytemperaturejsonObject.getString("tmin");
-                    Log.e("weather","tmaxYesterday====="+tmaxYesterday);
-                    Log.e("weather","tminYesterday====="+tminYesterday);
-
-                    JSONObject yesterdayskyjsonObject = new JSONObject(skyYesterday); //날씨
-                    String skyNameYesterday = yesterdayskyjsonObject.getString("name"); //날씨
-                    Log.e("weather","skyNameYesterday====="+skyNameYesterday);  //날씨
-
-
-                    //오늘날씨
-                    String today = summaryjsonObject.getString("today");
-                    Log.e("weather","today====="+today);
-
-                    JSONObject todayjsonObject = new JSONObject(today);
-                    String temperatureToday = todayjsonObject.getString("temperature");
-                    Log.e("weather","temperatureToday====="+temperatureToday);
-                    String skyToday = todayjsonObject.getString("sky");  //날씨
-                    Log.e("weather","skyToday====="+skyToday); //날씨
-
-                    JSONObject todaytemperaturejsonObject = new JSONObject(temperatureToday);
-                    String tmaxToday = todaytemperaturejsonObject.getString("tmax");
-                    String tminToday = todaytemperaturejsonObject.getString("tmin");
-                    Log.e("weather","tmaxToday====="+tmaxToday);
-                    Log.e("weather","tminToday====="+tminToday);
-
-                    JSONObject todayskyjsonObject = new JSONObject(skyToday); //날씨
-                    String skyNameToday = todayskyjsonObject.getString("name"); //날씨
-                    Log.e("weather","skyNameToday====="+skyNameToday);  //날씨
-
-
-                    //내일날씨
-                    String tomorrow = summaryjsonObject.getString("tomorrow");
-                    Log.e("weather","tomorrow====="+tomorrow);
-
-                    JSONObject tomorrowjsonObject = new JSONObject(tomorrow);
-                    String temperatureTomorrow = tomorrowjsonObject.getString("temperature");
-                    Log.e("weather","temperatureTomorrow====="+temperatureTomorrow);
-                    String skyTomorrow = tomorrowjsonObject.getString("sky");  //날씨
-                    Log.e("weather","skyTomorrow====="+skyTomorrow); //날씨
-
-                    JSONObject tomorrowtemperaturejsonObject = new JSONObject(temperatureTomorrow);
-                    String tmaxTomorrow = tomorrowtemperaturejsonObject.getString("tmax");
-                    String tminTomorrow = tomorrowtemperaturejsonObject.getString("tmin");
-                    Log.e("weather","tmaxTomorrow====="+tmaxTomorrow);
-                    Log.e("weather","tminTomorrow====="+tminTomorrow);
-
-                    JSONObject tomorrowskyjsonObject = new JSONObject(skyTomorrow); //날씨
-                    String skyNameTomorrow = tomorrowskyjsonObject.getString("name"); //날씨
-                    Log.e("weather","skyNameTomorrow====="+skyNameTomorrow);  //날씨
-
-                    //내일모래날씨
-                    String dayAfterTomorrow = summaryjsonObject.getString("dayAfterTomorrow");
-                    Log.e("weather","dayAfterTomorrow====="+dayAfterTomorrow);
-
-                    JSONObject dayAfterTomorrowjsonObject = new JSONObject(dayAfterTomorrow);
-                    String temperatureDayAfterTomorrow = dayAfterTomorrowjsonObject.getString("temperature");
-                    Log.e("weather","temperatureDayAfterTomorrow====="+temperatureDayAfterTomorrow);
-                    String skyDayAfterTomorrow = dayAfterTomorrowjsonObject.getString("sky");  //날씨
-                    Log.e("weather","skyDayAfterTomorrow====="+skyDayAfterTomorrow); //날씨
-
-                    JSONObject dayAfterTomorrowtemperaturejsonObject = new JSONObject(temperatureDayAfterTomorrow);
-                    String tmaxDayAfterTomorrow = dayAfterTomorrowtemperaturejsonObject.getString("tmax");
-                    String tminDayAfterTomorrow = dayAfterTomorrowtemperaturejsonObject.getString("tmin");
-                    Log.e("weather","tmaxDayAfterTomorrow====="+tmaxDayAfterTomorrow);
-                    Log.e("weather","tminDayAfterTomorrow====="+tminDayAfterTomorrow);
-
-                    JSONObject dayAfterTomorrowskyjsonObject = new JSONObject(skyDayAfterTomorrow); //날씨
-                    String skyNameDayAfterTomorrow = dayAfterTomorrowskyjsonObject.getString("name"); //날씨
-                    Log.e("weather","skyNameDayAfterTomorrow====="+skyNameDayAfterTomorrow);  //날씨
-
-                    //위치
-                    String grid = summaryjsonObject.getString("grid");
-                    Log.e("weather","grid====="+grid);
-
-                    JSONObject gridjsonObject = new JSONObject(grid);
-                    String city = gridjsonObject.getString("city");
-                    String county = gridjsonObject.getString("county");
-                    Log.e("weather","city====="+city);
-                    Log.e("weather","county====="+county);
-
-
-                    timeRelease.setText(timeReleaseText); //업데이트 날짜 세팅
-                    city_contry.setText(city+"   "+county);//도시 세팅
-
-                    max1.setText(substringcomma(tmaxYesterday)+" º");
-                    sky1.setText(skyNameYesterday);
-                    min1.setText(substringcomma(tminYesterday)+" º");
+                    JSONObject dailyjson1 = dailyjsonArray.getJSONObject(i);
+                    String temp = dailyjson1.getString("temp");
+                    JSONObject tempjson = new JSONObject(temp);
+                    tminToday = tempjson.getString("min");
+                    tmaxToday = tempjson.getString("max");
 
                     max2.setText(substringcomma(tmaxToday)+" º");
-                    sky2.setText(skyNameToday);
                     min2.setText(substringcomma(tminToday)+" º");
 
+                    String weather = dailyjson1.getString("weather");
+                    Log.e("weather","currentString====="+weather);
+                    JSONArray weatherjsonArray= new JSONArray(weather);
+                    JSONObject weatherjson = weatherjsonArray.getJSONObject(0);
+                    String skyNameToday = weatherjson.getString("description");
+                    String icon = weatherjson.getString("icon");
+                  //  sky2.setText(skyNameToday);
+
+                    // Glide로 이미지 표시하기
+                    String imageUrl = "https://openweathermap.org/img/wn/"+icon+"@2x.png";
+                    Glide.with(this).load(imageUrl).into(sky2);
+
+
+
+                }
+                if(i==1){
+                    JSONObject dailyjson1 = dailyjsonArray.getJSONObject(i);
+                    String temp = dailyjson1.getString("temp");
+                    JSONObject tempjson = new JSONObject(temp);
+                    tminTomorrow = tempjson.getString("min");
+                    tmaxTomorrow = tempjson.getString("max");
+
                     max3.setText(substringcomma(tmaxTomorrow)+" º");
-                    sky3.setText(skyNameTomorrow);
                     min3.setText(substringcomma(tminTomorrow)+" º");
 
+                    String weather = dailyjson1.getString("weather");
+                    Log.e("weather","currentString====="+weather);
+                    JSONArray weatherjsonArray= new JSONArray(weather);
+                    JSONObject weatherjson = weatherjsonArray.getJSONObject(0);
+                    String skyNameTomorrow = weatherjson.getString("description");
+                    String icon = weatherjson.getString("icon");
+                    //  sky2.setText(skyNameToday);
+
+                    // Glide로 이미지 표시하기
+                    String imageUrl = "https://openweathermap.org/img/wn/"+icon+"@2x.png";
+                    Glide.with(this).load(imageUrl).into(sky3);
+                }
+                if(i==2){
+                    JSONObject dailyjson1 = dailyjsonArray.getJSONObject(i);
+                    String temp = dailyjson1.getString("temp");
+                    JSONObject tempjson = new JSONObject(temp);
+                    tminDayAfterTomorrow = tempjson.getString("min");
+                    tmaxDayAfterTomorrow = tempjson.getString("max");
+
                     max4.setText(substringcomma(tmaxDayAfterTomorrow)+" º");
-                    sky4.setText(skyNameDayAfterTomorrow);
                     min4.setText(substringcomma(tminDayAfterTomorrow)+" º");
 
+                    String weather = dailyjson1.getString("weather");
+                    Log.e("weather","currentString====="+weather);
+                    JSONArray weatherjsonArray= new JSONArray(weather);
+                    JSONObject weatherjson = weatherjsonArray.getJSONObject(0);
+                    String skyNameDayAfterTomorrow = weatherjson.getString("description");
+                    String icon = weatherjson.getString("icon");
+                    //  sky2.setText(skyNameToday);
 
-                    text.setText(
-                                "어제  "+
-                            "  "+substringcomma(tminYesterday)+" º  ~"+
-                            "  "+substringcomma(tmaxYesterday)+" º\n\n"+
-
-                                "오늘  "+
-                            "  "+substringcomma(tminToday)+" º  ~"+
-                            "  "+substringcomma(tmaxToday)+" º\n\n"+
-
-                                "내일  "+
-                            "  "+substringcomma(tminTomorrow)+" º  ~"+
-                            "  "+substringcomma(tmaxTomorrow)+" º\n\n"+
-
-                                "모래  "+
-                             "  "+substringcomma(tminDayAfterTomorrow)+" º  ~"+
-                            "  "+substringcomma(tmaxDayAfterTomorrow)
-                    );
-
-                    float maxf1 = Float.parseFloat(tmaxYesterday);
-                    float minf1 = Float.parseFloat(tminYesterday);
-                    float maxf2 = Float.parseFloat(tmaxToday);
-                    float minf2 = Float.parseFloat(tminToday);
-                    float maxf3 = Float.parseFloat(tmaxTomorrow);
-                    float minf3 = Float.parseFloat(tminTomorrow);
-                    float maxf4 = Float.parseFloat(tmaxDayAfterTomorrow);
-                    float minf4 = Float.parseFloat(tminDayAfterTomorrow);
-
-                    float maxf ; //최대온도
-                    float minf ; //최소온도
-
-
-                    //최대온도 구하기
-                    if(maxf1>=maxf2){ maxf = maxf1;
-                    }else{ maxf = maxf2; }
-                    if(maxf>=maxf3){
-                    }else{ maxf=maxf3; }
-                    if(maxf>=maxf4){
-                    }else{ maxf=maxf4; }
-                    Log.e("weather","maxf====="+maxf);  //날씨
-                    //최소온도 구하기
-                    if(minf1<=minf2){ minf = minf1;
-                    }else{ minf = minf2; }
-                    if(minf<=minf3){
-                    }else{ minf=minf3; }
-                    if(minf<=minf4){
-                    }else{ minf=minf4; }
-                    Log.e("weather","minf====="+minf);  //날씨
-
-                    float lange = maxf - minf;
-                    Log.e("weather","lange====="+lange);  //날씨
-
-
-                    LinearLayout.LayoutParams paramsup1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
-                    LinearLayout.LayoutParams paramsmid1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
-                    LinearLayout.LayoutParams paramsdown1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
-
-                    paramsup1.weight = Math.round(maxf-maxf1);
-                    up1.setLayoutParams(paramsup1);
-                    paramsmid1.weight = Math.round(maxf1-minf1);
-                    mid1.setLayoutParams(paramsmid1);
-                    paramsdown1.weight = Math.round(minf1-minf);
-                    down1.setLayoutParams(paramsdown1);
-                    Log.e("weather","Math.round(maxf-maxf1)====="+Math.round(maxf-maxf1));  //날씨
-                    Log.e("weather","Math.round(maxf1-minf1)====="+Math.round(maxf1-minf1));  //날씨
-                    Log.e("weather","Math.round(minf1-minf)====="+Math.round(minf1-minf));  //날씨
-
-                    LinearLayout.LayoutParams paramsup2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
-                    LinearLayout.LayoutParams paramsmid2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
-                    LinearLayout.LayoutParams paramsdown2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
-
-                    paramsup2.weight = Math.round(maxf-maxf2);
-                    up2.setLayoutParams(paramsup2);
-                    paramsmid2.weight = Math.round(maxf2-minf2);
-                    mid2.setLayoutParams(paramsmid2);
-                    paramsdown2.weight = Math.round(minf2-minf);
-                    down2.setLayoutParams(paramsdown2);
-
-                    LinearLayout.LayoutParams paramsup3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
-                    LinearLayout.LayoutParams paramsmid3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
-                    LinearLayout.LayoutParams paramsdown3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
-
-                    paramsup3.weight = Math.round(maxf-maxf3);
-                    up3.setLayoutParams(paramsup3);
-                    paramsmid3.weight = Math.round(maxf3-minf3);
-                    mid3.setLayoutParams(paramsmid3);
-                    paramsdown3.weight = Math.round(minf3-minf);
-                    down3.setLayoutParams(paramsdown3);
-
-                    LinearLayout.LayoutParams paramsup4 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
-                    LinearLayout.LayoutParams paramsmid4 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
-                    LinearLayout.LayoutParams paramsdown4 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
-
-                    paramsup4.weight = Math.round(maxf-maxf4);
-                    up4.setLayoutParams(paramsup4);
-                    paramsmid4.weight = Math.round(maxf4-minf4);
-                    mid4.setLayoutParams(paramsmid4);
-                    paramsdown4.weight = Math.round(minf4-minf);
-                    down4.setLayoutParams(paramsdown4);
+                    // Glide로 이미지 표시하기
+                    String imageUrl = "https://openweathermap.org/img/wn/"+icon+"@2x.png";
+                    Glide.with(this).load(imageUrl).into(sky4);
                 }
             }
 
-            Toast.makeText(MainActivity.this, "날씨 업데이트가 완료되었습니다.", Toast.LENGTH_LONG).show();
 
-          /*  JSONObject jsonObject = new JSONObject(jsonInfo);
-            String predictions = jsonObject.getString("predictions");
-            JSONArray jsonArray = new JSONArray(predictions);
-            for (int i=0; i < jsonArray.length(); i++) {
-                JSONObject subJsonObject = jsonArray.getJSONObject(i);
-                String description = subJsonObject.getString("description");
-                String id = subJsonObject.getString("id");
+            new Thread() {
+                public void run() {
 
-                String structured_formatting = subJsonObject.getString("structured_formatting");
-                JSONObject subJsonObject2 = new JSONObject(structured_formatting);
-                String main_text = subJsonObject2.getString("main_text");
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd");
 
-                System.out.println("description: " + description + "\n" +
-                        "id: " + id + "\n" +
-                        "main_text: " + main_text);*/
+                    tsLong = System.currentTimeMillis()/1000;  //현재시간
+                    String ts = tsLong.toString();
 
+                    Long gmttime = tsLong - 32400 ;  //gmt 시간
+
+                   if(dateFormat.format(gmttime)==dateFormat.format(tsLong)){
+
+                       yesterdaytime1 = tsLong - 86400; //어제
+                       yesterdaytime2 = tsLong - 86400*2; //그제
+                    }else{
+                       yesterdaytime1 = tsLong ; //어제
+                       yesterdaytime2 = tsLong - 86400; //그제
+                    }
+
+                    //String naverHtml = httpConnection("https://api.openweathermap.org/data/2.5/onecall?lat="+lat+"&lon="+lon+"&exclude=alerts&appid=e9e3ed325461bd506285bdb140285195&lang=kr&units=metric");
+                    String naverHtml = httpConnection("https://api.openweathermap.org/data/2.5/onecall/timemachine?lat="+lat+"&lon="+lon+"&exclude=alerts&appid=e9e3ed325461bd506285bdb140285195&lang=kr&units=metric&dt="+yesterdaytime2);
+
+                    Bundle bun = new Bundle();
+                    bun.putString("HTML_DATA2", naverHtml);
+
+                    Message msg = handler2.obtainMessage();
+                    msg.setData(bun);
+                    handler2.sendMessage(msg);
+                }
+            }.start();
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -465,6 +401,90 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void  setgraph(){
+        float maxf1 = Float.parseFloat(tmaxYesterday);
+        float minf1 = Float.parseFloat(tminYesterday);
+        float maxf2 = Float.parseFloat(tmaxToday);
+        float minf2 = Float.parseFloat(tminToday);
+        float maxf3 = Float.parseFloat(tmaxTomorrow);
+        float minf3 = Float.parseFloat(tminTomorrow);
+        float maxf4 = Float.parseFloat(tmaxDayAfterTomorrow);
+        float minf4 = Float.parseFloat(tminDayAfterTomorrow);
+
+        float maxf ; //최대온도
+        float minf ; //최소온도
+
+
+        //최대온도 구하기
+        if(maxf1>=maxf2){ maxf = maxf1;
+        }else{ maxf = maxf2; }
+        if(maxf>=maxf3){
+        }else{ maxf=maxf3; }
+        if(maxf>=maxf4){
+        }else{ maxf=maxf4; }
+        Log.e("weather","maxf====="+maxf);  //날씨
+        //최소온도 구하기
+        if(minf1<=minf2){ minf = minf1;
+        }else{ minf = minf2; }
+        if(minf<=minf3){
+        }else{ minf=minf3; }
+        if(minf<=minf4){
+        }else{ minf=minf4; }
+        Log.e("weather","minf====="+minf);  //날씨
+
+        float lange = maxf - minf;
+        Log.e("weather","lange====="+lange);  //날씨
+
+
+        LinearLayout.LayoutParams paramsup1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
+        LinearLayout.LayoutParams paramsmid1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
+        LinearLayout.LayoutParams paramsdown1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
+
+        paramsup1.weight = Math.round(maxf-maxf1);
+        up1.setLayoutParams(paramsup1);
+        paramsmid1.weight = Math.round(maxf1-minf1);
+        mid1.setLayoutParams(paramsmid1);
+        paramsdown1.weight = Math.round(minf1-minf);
+        down1.setLayoutParams(paramsdown1);
+        Log.e("weather","Math.round(maxf-maxf1)====="+Math.round(maxf-maxf1));  //날씨
+        Log.e("weather","Math.round(maxf1-minf1)====="+Math.round(maxf1-minf1));  //날씨
+        Log.e("weather","Math.round(minf1-minf)====="+Math.round(minf1-minf));  //날씨
+
+        LinearLayout.LayoutParams paramsup2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
+        LinearLayout.LayoutParams paramsmid2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
+        LinearLayout.LayoutParams paramsdown2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
+
+        paramsup2.weight = Math.round(maxf-maxf2);
+        up2.setLayoutParams(paramsup2);
+        paramsmid2.weight = Math.round(maxf2-minf2);
+        mid2.setLayoutParams(paramsmid2);
+        paramsdown2.weight = Math.round(minf2-minf);
+        down2.setLayoutParams(paramsdown2);
+
+        LinearLayout.LayoutParams paramsup3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
+        LinearLayout.LayoutParams paramsmid3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
+        LinearLayout.LayoutParams paramsdown3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
+
+        paramsup3.weight = Math.round(maxf-maxf3);
+        up3.setLayoutParams(paramsup3);
+        paramsmid3.weight = Math.round(maxf3-minf3);
+        mid3.setLayoutParams(paramsmid3);
+        paramsdown3.weight = Math.round(minf3-minf);
+        down3.setLayoutParams(paramsdown3);
+
+        LinearLayout.LayoutParams paramsup4 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
+        LinearLayout.LayoutParams paramsmid4 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
+        LinearLayout.LayoutParams paramsdown4 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
+
+        paramsup4.weight = Math.round(maxf-maxf4);
+        up4.setLayoutParams(paramsup4);
+        paramsmid4.weight = Math.round(maxf4-minf4);
+        mid4.setLayoutParams(paramsmid4);
+        paramsdown4.weight = Math.round(minf4-minf);
+        down4.setLayoutParams(paramsdown4);
+
+        Toast.makeText(MainActivity.this, "날씨 업데이트가 완료되었습니다.", Toast.LENGTH_LONG).show();
+    }
 
     public void startGPSweather(){
         //위치 값을 가져올 수 있음
@@ -479,14 +499,16 @@ public class MainActivity extends AppCompatActivity {
             //   userVO.setLat(latitude);
             //   userVO.setLon(longitude);
             System.out.println("////////////현재 내 위치값 : "+latitude+","+longitude);
-             appKey = "l7xx26f65cec2522414e8ce89887fcf52947";
-             lat= Double.toString(latitude);
-             lon= Double.toString(longitude);
+             //appKey = "l7xx26f65cec2522414e8ce89887fcf52947";
+            appKey = "e9e3ed325461bd506285bdb140285195";
+            lat= Double.toString(latitude);
+            lon= Double.toString(longitude);
         }
-
+        Toast.makeText(MainActivity.this, "날씨를 업데이트 합니다.", Toast.LENGTH_LONG).show();
         new Thread() {
             public void run() {
-                String naverHtml = httpConnection("https://apis.openapi.sk.com/weather/summary?appKey="+appKey+"&version=2&lat="+lat+"&lon="+lon);
+                //String naverHtml = httpConnection("https://apis.openapi.sk.com/weather/summary?appKey="+appKey+"&version=2&lat="+lat+"&lon="+lon);
+                String naverHtml = httpConnection("https://api.openweathermap.org/data/2.5/onecall?lat="+lat+"&lon="+lon+"&exclude=alerts&appid=e9e3ed325461bd506285bdb140285195&lang=kr&units=metric");
 
                 Bundle bun = new Bundle();
                 bun.putString("HTML_DATA", naverHtml);
@@ -496,6 +518,77 @@ public class MainActivity extends AppCompatActivity {
                 handler.sendMessage(msg);
             }
         }.start();
+    }
+
+    public void startTomorrow(String jsonInfo){
+
+        try {
+            Log.e("hourly", "currentString=====" + jsonInfo);
+            JSONObject jsonObject = new JSONObject(jsonInfo);
+            String hourly = jsonObject.getString("hourly");
+            Log.e("hourly", "currentString=====" + hourly);
+            JSONArray hourlyjsonArray = new JSONArray(hourly);
+
+            for (int i = 15; i <24; i++) {
+                JSONObject hourlyjson = hourlyjsonArray.getJSONObject(i);
+                temp.add(hourlyjson.getString("temp"));
+                Log.e("yesterdaytemp",hourlyjson.getString("dt")+" "+hourlyjson.getString("temp"));
+            }
+
+
+            new Thread() {
+                public void run() {
+                    String naverHtml = httpConnection("https://api.openweathermap.org/data/2.5/onecall/timemachine?lat="+lat+"&lon="+lon+"&exclude=alerts&appid=e9e3ed325461bd506285bdb140285195&lang=kr&units=metric&dt="+yesterdaytime1);
+
+                    Bundle bun = new Bundle();
+                    bun.putString("HTML_DATA3", naverHtml);
+
+                    Message msg = handler3.obtainMessage();
+                    msg.setData(bun);
+                    handler3.sendMessage(msg);
+                }
+            }.start();
+
+
+
+        }catch(Exception e){
+            Log.e("Exception1",e+"");
+        }
+
+    }
+
+    public void startTomorrow2(String jsonInfo){
+
+        try {
+            Log.e("hourly", "currentString=====" + jsonInfo);
+            JSONObject jsonObject = new JSONObject(jsonInfo);
+            String hourly = jsonObject.getString("hourly");
+            Log.e("hourly", "currentString=====" + hourly);
+            JSONArray hourlyjsonArray = new JSONArray(hourly);
+
+            for (int i = 0; i <16; i++) {
+                JSONObject hourlyjson = hourlyjsonArray.getJSONObject(i);
+                temp.add(hourlyjson.getString("temp"));
+                Log.e("yesterdaytemp",hourlyjson.getString("dt")+" "+hourlyjson.getString("temp"));
+            }
+
+            ArrayList<Float> templist = new ArrayList<Float>();
+            for(int i = 0; i <temp.size(); i++){
+                templist.add(Float.parseFloat(temp.get(i)));
+            }
+
+            tmaxYesterday = Collections.max(templist).toString();
+            tminYesterday = Collections.min(templist).toString();
+
+            max1.setText(substringcomma(tmaxYesterday)+" º");
+            min1.setText(substringcomma(tminYesterday)+" º");
+
+
+            setgraph();
+        }catch(Exception e){
+            Log.e("Exception2",e+"");
+        }
+
     }
 
 

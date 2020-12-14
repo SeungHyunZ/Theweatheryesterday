@@ -77,14 +77,14 @@
             <LinearLayout
                 android:id="@+id/mid1"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
+                android:layout_height="50dp"
                 android:layout_weight="50"
                 android:padding="4dp"
                 android:background="@drawable/backline"
                 android:orientation="vertical">
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
+                    android:layout_height="30dp"
                     android:layout_weight="50"
                     android:background="@android:color/holo_red_light"
                     android:orientation="vertical">
@@ -96,12 +96,12 @@
                         android:gravity="top|center"
                         android:textSize="20sp"
                         android:textColor="@android:color/black"
-                        android:text="18 º" />
+                        android:text="****" />
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="30dp"
-                    android:background="@android:color/holo_orange_light"
+                    android:layout_height="60dp"
+                    android:background="@android:color/holo_purple"
                     android:orientation="vertical">
                     <TextView
                         android:layout_width="match_parent"
@@ -109,25 +109,11 @@
                         android:gravity="center"
                         android:textSize="15sp"
                         android:textColor="@android:color/white"
-                        android:text="어제" />
+                        android:text="어제D-1" />
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="30dp"
-                    android:background="#ffffff"
-                    android:orientation="vertical">
-                    <TextView
-                        android:id="@+id/sky1"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:textSize="12sp"
-                        android:textColor="@android:color/black"
-                        android:text="흐림" />
-                </LinearLayout>
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
                     android:layout_weight="50"
                     android:background="@android:color/holo_blue_dark"
                     android:orientation="vertical">
@@ -139,7 +125,7 @@
                         android:gravity="bottom|center"
                         android:textSize="20sp"
                         android:textColor="@android:color/black"
-                        android:text="6 º" />
+                        android:text="!!" />
                 </LinearLayout>
             </LinearLayout>
             <!--어제내용 그래프 eof-->
@@ -175,14 +161,14 @@
             <LinearLayout
                 android:id="@+id/mid2"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
+                android:layout_height="50dp"
                 android:layout_weight="50"
                 android:padding="4dp"
                 android:background="@drawable/backline"
                 android:orientation="vertical">
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
+                    android:layout_height="30dp"
                     android:layout_weight="50"
                     android:background="@android:color/holo_red_light"
                     android:orientation="vertical">
@@ -194,7 +180,7 @@
                         android:gravity="top|center"
                         android:textSize="20sp"
                         android:textColor="@android:color/black"
-                        android:text="18 º" />
+                        android:text="%%" />
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -207,14 +193,14 @@
                         android:gravity="center"
                         android:textSize="15sp"
                         android:textColor="@android:color/white"
-                        android:text="오늘" />
+                        android:text="TODAY" />
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="30dp"
                     android:background="#ffffff"
                     android:orientation="vertical">
-                    <TextView
+                    <ImageView
                         android:id="@+id/sky2"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
@@ -225,7 +211,7 @@
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
+                    android:layout_height="30dp"
                     android:layout_weight="50"
                     android:background="@android:color/holo_blue_dark"
                     android:orientation="vertical">
@@ -237,7 +223,7 @@
                         android:gravity="bottom|center"
                         android:textSize="20sp"
                         android:textColor="@android:color/black"
-                        android:text="6 º" />
+                        android:text="^^" />
                 </LinearLayout>
             </LinearLayout>
             <!--오늘내용 그래프 eof-->
@@ -273,14 +259,14 @@
             <LinearLayout
                 android:id="@+id/mid3"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
+                android:layout_height="50dp"
                 android:layout_weight="6"
                 android:padding="4dp"
                 android:background="@drawable/backline"
                 android:orientation="vertical">
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
+                    android:layout_height="30dp"
                     android:layout_weight="50"
                     android:background="@android:color/holo_red_light"
                     android:orientation="vertical">
@@ -292,7 +278,7 @@
                         android:gravity="top|center"
                         android:textSize="20sp"
                         android:textColor="@android:color/black"
-                        android:text="18 º" />
+                        android:text="ºº" />
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -305,14 +291,14 @@
                         android:gravity="center"
                         android:textSize="15sp"
                         android:textColor="@android:color/white"
-                        android:text="내일" />
+                        android:text="내일D+1" />
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="30dp"
                     android:background="#ffffff"
                     android:orientation="vertical">
-                    <TextView
+                    <ImageView
                         android:id="@+id/sky3"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
@@ -323,7 +309,7 @@
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
+                    android:layout_height="30dp"
                     android:layout_weight="50"
                     android:background="@android:color/holo_blue_dark"
                     android:orientation="vertical">
@@ -335,7 +321,7 @@
                         android:gravity="bottom|center"
                         android:textSize="20sp"
                         android:textColor="@android:color/black"
-                        android:text="6 º" />
+                        android:text="~~" />
                 </LinearLayout>
             </LinearLayout>
             <!--내일내용 그래프 eof-->
@@ -371,14 +357,14 @@
             <LinearLayout
                 android:id="@+id/mid4"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
+                android:layout_height="50dp"
                 android:layout_weight="10"
                 android:padding="4dp"
                 android:background="@drawable/backline"
                 android:orientation="vertical">
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
+                    android:layout_height="30dp"
                     android:layout_weight="50"
                     android:background="@android:color/holo_red_light"
                     android:orientation="vertical">
@@ -390,7 +376,7 @@
                         android:gravity="top|center"
                         android:textSize="20sp"
                         android:textColor="@android:color/black"
-                        android:text="18 º" />
+                        android:text="$$" />
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -403,14 +389,14 @@
                         android:gravity="center"
                         android:textSize="15sp"
                         android:textColor="@android:color/white"
-                        android:text="모래" />
+                        android:text="모레D+2" />
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="30dp"
                     android:background="#ffffff"
                     android:orientation="vertical">
-                    <TextView
+                    <ImageView
                         android:id="@+id/sky4"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
@@ -421,7 +407,7 @@
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
+                    android:layout_height="30dp"
                     android:layout_weight="50"
                     android:background="@android:color/holo_blue_dark"
                     android:orientation="vertical">
@@ -433,7 +419,7 @@
                         android:gravity="bottom|center"
                         android:textSize="20sp"
                         android:textColor="@android:color/black"
-                        android:text="6 º" />
+                        android:text="TT" />
                 </LinearLayout>
             </LinearLayout>
             <!--모래내용 그래프 eof-->
