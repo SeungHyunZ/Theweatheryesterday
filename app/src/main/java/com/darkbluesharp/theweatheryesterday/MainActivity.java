@@ -367,18 +367,20 @@ public class MainActivity extends AppCompatActivity {
             new Thread() {
                 public void run() {
 
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd");
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY-MM-dd");
+                    SimpleDateFormat dateFormat2 = new SimpleDateFormat("YYYY-MM-dd HH:mm:ssZ");
 
                     tsLong = System.currentTimeMillis()/1000;  //현재시간
                     String ts = tsLong.toString();
-
-                    Long gmttime = tsLong - 32400 ;  //gmt 시간
-
-                   if(dateFormat.format(gmttime)==dateFormat.format(tsLong)){
-
+                    Log.e("timezone_offset",timezone_offset+"");
+                    Long gmttime = tsLong - timezone_offset ;  //gmt 시간
+Log.e("weather","gmttime="+dateFormat2.format(gmttime*1000)+" gmttime= "+dateFormat2.format(tsLong*1000));
+                   if(dateFormat.format(gmttime*1000).equals(dateFormat.format(tsLong*1000))){
+Log.e("weather", "어제, 그제");
                        yesterdaytime1 = tsLong - 86400; //어제
                        yesterdaytime2 = tsLong - 86400*2; //그제
                     }else{
+                       Log.e("weather", "오늘, 어제");
                        yesterdaytime1 = tsLong ; //어제
                        yesterdaytime2 = tsLong - 86400; //그제
                     }
