@@ -38,6 +38,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Locale;
 
 import com.bumptech.glide.Glide;
 import com.google.android.gms.ads.AdRequest;
@@ -54,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
     TextView timeRelease;
     TextView city_contry;
 
-    TextView max1, min1, max2, min2, max3, min3, max4, min4 ;
+    TextView max1, min1, max2, min2, max3, min3, max4, min4, d1, d2, d3, d4 ;
     LinearLayout up1, mid1, down1, up2, mid2, down2, up3, mid3, down3, up4, mid4, down4;
 
     ImageView sky1, sky2,sky3,sky4;
@@ -150,6 +151,12 @@ public class MainActivity extends AppCompatActivity {
         up4 = (LinearLayout) findViewById(R.id.up4);
         mid4 = (LinearLayout) findViewById(R.id.mid4);
         down4 = (LinearLayout) findViewById(R.id.down4);
+
+        d1 = (TextView) findViewById(R.id.d1);
+        d2 = (TextView) findViewById(R.id.d2);
+        d3 = (TextView) findViewById(R.id.d3);
+        d4 = (TextView) findViewById(R.id.d4);
+
 
 
         ImageView refresh = (ImageView) findViewById(R.id.refresh) ;
@@ -251,9 +258,13 @@ public class MainActivity extends AppCompatActivity {
     public String substringcomma(String t){
 
         int idx = t.indexOf(".");
-        String substringcomma = t.substring(0, idx+2);
+        if(idx==-1){
+            return t;
+        }else {
+            String substringcomma = t.substring(0, idx + 2);
 
-        return  substringcomma;
+            return substringcomma;
+        }
     }
 
     public void weatersetting(String jsonInfo){
@@ -271,13 +282,15 @@ public class MainActivity extends AppCompatActivity {
             // 현재시간을 date 변수에 저장한다.
             Date date = new Date(now);
             // 시간을 나타냇 포맷을 정한다 ( yyyy/MM/dd 같은 형태로 변형 가능 )
-            SimpleDateFormat sdfNow = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+            SimpleDateFormat sdfNow = new SimpleDateFormat("yyyy/MM/dd HH:mm EEE", Locale.ENGLISH);
             // nowDate 변수에 값을 저장한다.
             String formatDate = sdfNow.format(date);
 
+            String currenttemp = dtjson .getString("temp");
 
 
-            timeRelease.setText(formatDate); //업데이트 날짜 세팅
+
+            timeRelease.setText(formatDate+"      "+currenttemp+" º"); //업데이트 날짜 및 현재온도 세팅
 
             //도시
             String timezoneString = jsonObject.getString("timezone");
@@ -301,7 +314,6 @@ public class MainActivity extends AppCompatActivity {
 
                     max2.setText(substringcomma(tmaxToday)+" º");
                     min2.setText(substringcomma(tminToday)+" º");
-
                     String weather = dailyjson1.getString("weather");
                     Log.e("weather","currentString====="+weather);
                     JSONArray weatherjsonArray= new JSONArray(weather);
@@ -369,14 +381,15 @@ public class MainActivity extends AppCompatActivity {
 
                     SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY-MM-dd");
                     SimpleDateFormat dateFormat2 = new SimpleDateFormat("YYYY-MM-dd HH:mm:ssZ");
+                    SimpleDateFormat dateFormat3 = new SimpleDateFormat("EEE", Locale.ENGLISH);
 
                     tsLong = System.currentTimeMillis()/1000;  //현재시간
                     String ts = tsLong.toString();
                     Log.e("timezone_offset",timezone_offset+"");
                     Long gmttime = tsLong - timezone_offset ;  //gmt 시간
-Log.e("weather","gmttime="+dateFormat2.format(gmttime*1000)+" gmttime= "+dateFormat2.format(tsLong*1000));
+                    Log.e("weather","gmttime="+dateFormat2.format(gmttime*1000)+" gmttime= "+dateFormat2.format(tsLong*1000));
                    if(dateFormat.format(gmttime*1000).equals(dateFormat.format(tsLong*1000))){
-Log.e("weather", "어제, 그제");
+                        Log.e("weather", "어제, 그제");
                        yesterdaytime1 = tsLong - 86400; //어제
                        yesterdaytime2 = tsLong - 86400*2; //그제
                     }else{
@@ -384,6 +397,13 @@ Log.e("weather", "어제, 그제");
                        yesterdaytime1 = tsLong ; //어제
                        yesterdaytime2 = tsLong - 86400; //그제
                     }
+
+                    d1.setText("어제("+dateFormat3.format((tsLong-86400)*1000)+")");
+                    d2.setText("오늘("+dateFormat3.format(tsLong*1000)+")");
+                    d3.setText("내일("+dateFormat3.format((tsLong+86400)*1000)+")");
+                    d4.setText("모래("+dateFormat3.format((tsLong+86400*2)*1000)+")");
+
+
 
                     //String naverHtml = httpConnection("https://api.openweathermap.org/data/2.5/onecall?lat="+lat+"&lon="+lon+"&exclude=alerts&appid=e9e3ed325461bd506285bdb140285195&lang=kr&units=metric");
                     String naverHtml = httpConnection("https://api.openweathermap.org/data/2.5/onecall/timemachine?lat="+lat+"&lon="+lon+"&exclude=alerts&appid=e9e3ed325461bd506285bdb140285195&lang=kr&units=metric&dt="+yesterdaytime2);
